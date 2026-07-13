@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Day Sentinel — Cryptographic Exposure Monitoring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0E14;
+    --bg-panel: #10151F;
+    --line: #232B3A;
+    --steel: #1C2536;
+    --signal: #5EEAD4;
+    --signal-dim: #2F6E64;
+    --amber: #F0A63A;
+    --text: #E7ECF3;
+    --text-dim: #8592A6;
+    --text-faint: #4B5568;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+
+  a{ color:inherit; }
+  :focus-visible{ outline:2px solid var(--signal); outline-offset:3px; }
+
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,14,20,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px; max-width:1180px; margin:0 auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-weight:600; font-size:15px;
+    letter-spacing:0.02em;
+  }
+  .brand-mark{
+    width:20px; height:20px; position:relative; flex-shrink:0;
+  }
+  .brand-mark svg{ width:100%; height:100%; }
+  .brand small{
+    display:block; color:var(--text-dim); font-weight:400; font-size:10px;
+    letter-spacing:0.14em; text-transform:uppercase; margin-top:1px;
+  }
+  nav.links{ display:flex; gap:32px; font-size:14px; color:var(--text-dim); }
+  nav.links a{ text-decoration:none; transition:color 0.2s; }
+  nav.links a:hover{ color:var(--signal); }
+  .nav-cta{
+    font-family:var(--mono); font-size:12px; padding:9px 16px;
+    border:1px solid var(--signal-dim); border-radius:2px; color:var(--signal);
+    text-decoration:none; letter-spacing:0.04em; transition:all 0.2s;
+  }
+  .nav-cta:hover{ background:var(--signal); color:#06110F; border-color:var(--signal); }
+  @media (max-width:820px){ nav.links{ display:none; } }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:96px 32px 80px;
+    overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-inner{
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center;
+    position:relative; z-index:2;
+  }
+  @media (max-width:900px){ .hero-inner{ grid-template-columns:1fr; } }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; color:var(--signal);
+    letter-spacing:0.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:8px; margin-bottom:22px;
+  }
+  .eyebrow .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--signal);
+    box-shadow:0 0 0 0 rgba(94,234,212,0.6);
+    animation:pulse-dot 2.4s ease-out infinite;
+  }
+  @keyframes pulse-dot{
+    0%{ box-shadow:0 0 0 0 rgba(94,234,212,0.5); }
+    70%{ box-shadow:0 0 0 8px rgba(94,234,212,0); }
+    100%{ box-shadow:0 0 0 0 rgba(94,234,212,0); }
+  }
+
+  h1{
+    font-family:var(--mono); font-weight:700;
+    font-size:clamp(32px, 4.4vw, 52px);
+    line-height:1.12; letter-spacing:-0.01em;
+    color:var(--text);
+  }
+  h1 em{ font-style:normal; color:var(--signal); }
+
+  .hero p.lede{
+    margin-top:22px; font-size:17px; color:var(--text-dim); max-width:52ch;
+  }
+
+  .hero-actions{ display:flex; gap:14px; margin-top:34px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--signal); color:#06110F; font-family:var(--mono);
+    font-weight:600; font-size:14px; padding:13px 22px; border-radius:2px;
+    text-decoration:none; letter-spacing:0.02em; transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 6px 24px rgba(94,234,212,0.18); }
+  .btn-ghost{
+    border:1px solid var(--line); color:var(--text); font-family:var(--mono);
+    font-size:14px; padding:13px 22px; border-radius:2px; text-decoration:none;
+    transition:border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover{ border-color:var(--text-dim); color:var(--signal); }
+
+  /* Lattice signature visual */
+  .lattice-box{
+    position:relative; aspect-ratio:1/1; border:1px solid var(--line);
+    border-radius:4px; background:var(--bg-panel); overflow:hidden;
+  }
+  .lattice-box svg{ width:100%; height:100%; display:block; }
+  .lattice-caption{
+    position:absolute; bottom:0; left:0; right:0;
+    padding:12px 16px; font-family:var(--mono); font-size:10.5px;
+    color:var(--text-faint); letter-spacing:0.06em; text-transform:uppercase;
+    background:linear-gradient(0deg, rgba(10,14,20,0.9), transparent);
+  }
+
+  /* background ambient grid */
+  .hero::before{
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:64px 64px;
+    opacity:0.25;
+    mask-image:radial-gradient(ellipse 70% 60% at 30% 20%, black, transparent);
+  }
+
+  /* ---------- SECTION shared ---------- */
+  section{ padding:88px 32px; border-bottom:1px solid var(--line); }
+  .section-head{ max-width:640px; margin-bottom:52px; }
+  .section-tag{
+    font-family:var(--mono); font-size:12px; color:var(--amber);
+    letter-spacing:0.12em; text-transform:uppercase; margin-bottom:14px;
+  }
+  h2{
+    font-family:var(--mono); font-size:clamp(24px,3vw,32px); font-weight:600;
+    letter-spacing:-0.01em; line-height:1.25;
+  }
+  .section-head p{ color:var(--text-dim); margin-top:14px; font-size:15.5px; max-width:56ch; }
+
+  /* ---------- PROBLEM ---------- */
+  .problem-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start;
+    max-width:1180px; margin:0 auto;
+  }
+  @media (max-width:860px){ .problem-grid{ grid-template-columns:1fr; } }
+  .problem-copy p{ color:var(--text-dim); font-size:15.5px; margin-bottom:16px; }
+  .problem-copy strong{ color:var(--text); font-weight:600; }
+
+  .algo-table{
+    font-family:var(--mono); font-size:13px; border:1px solid var(--line); border-radius:4px; overflow:hidden;
+  }
+  .algo-row{
+    display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:8px;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    align-items:center;
+  }
+  .algo-row:last-child{ border-bottom:none; }
+  .algo-row.head{ background:var(--steel); color:var(--text-dim); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; }
+  .algo-row span.status{
+    padding:3px 8px; border-radius:20px; font-size:11px; width:fit-content;
+  }
+  .status.broken{ background:rgba(240,166,58,0.14); color:var(--amber); }
+  .status.safe{ background:rgba(94,234,212,0.12); color:var(--signal); }
+
+  /* ---------- FEATURES ---------- */
+  .feature-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden;
+    max-width:1180px; margin:0 auto;
+  }
+  @media (max-width:860px){ .feature-grid{ grid-template-columns:1fr; } }
+  .feature{ background:var(--bg-panel); padding:32px 28px; }
+  .feature-icon{ width:34px; height:34px; margin-bottom:20px; color:var(--signal); }
+  .feature-icon svg{ width:100%; height:100%; }
+  .feature h3{
+    font-family:var(--mono); font-size:16px; font-weight:600; margin-bottom:10px;
+  }
+  .feature p{ color:var(--text-dim); font-size:14px; }
+
+  /* ---------- PIPELINE ---------- */
+  .pipeline{
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:24px;
+  }
+  @media (max-width:860px){ .pipeline{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:520px){ .pipeline{ grid-template-columns:1fr; } }
+  .pipe-step{ position:relative; padding-top:8px; }
+  .pipe-num{
+    font-family:var(--mono); font-size:12px; color:var(--text-faint);
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:16px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .pipe-num .n{ color:var(--signal); }
+  .pipe-step h3{ font-family:var(--mono); font-size:15px; margin-bottom:8px; }
+  .pipe-step p{ color:var(--text-dim); font-size:13.5px; }
+
+  /* ---------- GAUGE / STATUS ---------- */
+  .status-panel{
+    max-width:1180px; margin:0 auto;
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:6px;
+    display:grid; grid-template-columns:1fr 1fr; overflow:hidden;
+  }
+  @media (max-width:860px){ .status-panel{ grid-template-columns:1fr; } }
+  .status-copy{ padding:48px; border-right:1px solid var(--line); }
+  @media (max-width:860px){ .status-copy{ border-right:none; border-bottom:1px solid var(--line); } }
+  .status-copy .section-tag{ margin-bottom:14px; }
+  .status-copy h2{ margin-bottom:16px; }
+  .status-copy p{ color:var(--text-dim); font-size:15px; margin-bottom:28px; }
+  .status-metrics{ display:flex; gap:36px; }
+  .metric .num{ font-family:var(--mono); font-size:28px; color:var(--signal); font-weight:600; }
+  .metric .label{ font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+  .status-visual{ padding:40px; display:flex; align-items:center; justify-content:center; }
+  .status-visual svg{ width:100%; max-width:320px; }
+
+  /* ---------- CTA ---------- */
+  .cta{
+    text-align:center; padding:100px 32px; border-bottom:none;
+    position:relative;
+  }
+  .cta h2{ font-size:clamp(26px,3.4vw,36px); max-width:600px; margin:0 auto 18px; }
+  .cta p{ color:var(--text-dim); max-width:50ch; margin:0 auto 34px; font-size:15.5px; }
+  .cta-actions{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+  footer{
+    padding:36px 32px; display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:12px; color:var(--text-faint); flex-wrap:wrap; gap:12px;
+  }
+  footer a{ color:var(--text-dim); text-decoration:none; }
+  footer a:hover{ color:var(--signal); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#5EEAD4" stroke-width="1.2"/><circle cx="10" cy="10" r="2.2" fill="#5EEAD4"/><line x1="10" y1="1" x2="10" y2="4.5" stroke="#5EEAD4" stroke-width="1"/><line x1="10" y1="15.5" x2="10" y2="19" stroke="#5EEAD4" stroke-width="1"/><line x1="1" y1="10" x2="4.5" y2="10" stroke="#5EEAD4" stroke-width="1"/><line x1="15.5" y1="10" x2="19" y2="10" stroke="#5EEAD4" stroke-width="1"/></svg>
+      </span>
+      <span>Q-DAY SENTINEL<small>Cryptographic exposure monitoring</small></span>
+    </div>
+    <nav class="links">
+      <a href="#problem">The Problem</a>
+      <a href="#monitoring">Monitoring</a>
+      <a href="#pipeline">How It Works</a>
+      <a href="#status">Status</a>
+    </nav>
+    <a class="nav-cta" href="#cta">Request Access</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Continuous PQC readiness monitoring</div>
+      <h1>Every algorithm has<br>an <em>expiration date.</em></h1>
+      <p class="lede">Q-Day Sentinel watches your systems for the cryptography that a quantum computer will eventually break — and tracks how close you are to being ready before it does.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#status">View readiness status</a>
+        <a class="btn-ghost" href="#problem">Why this matters</a>
+      </div>
+    </div>
+    <div class="lattice-box" aria-hidden="true">
+      <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#5EEAD4" stop-opacity="0.14"/>
+            <stop offset="100%" stop-color="#5EEAD4" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="400" height="400" fill="url(#glow)"/>
+        <g id="latticeDots" stroke="#232B3A" stroke-width="1">
+          <!-- lattice grid lines -->
+        </g>
+        <g id="dotsGroup"></g>
+        <line x1="0" y1="0" x2="400" y2="0" stroke="#5EEAD4" stroke-width="2" opacity="0.7">
+          <animate attributeName="y1" values="0;400;0" dur="6s" repeatCount="indefinite"/>
+          <animate attributeName="y2" values="0;400;0" dur="6s" repeatCount="indefinite"/>
+        </line>
+        <script><![CDATA[
+          (function(){
+            var linesG = document.getElementById('latticeDots');
+            var step = 33.3;
+            for(var i=0;i<=12;i++){
+              var l1 = document.createElementNS('http://www.w3.org/2000/svg','line');
+              l1.setAttribute('x1', i*step); l1.setAttribute('y1', 0);
+              l1.setAttribute('x2', i*step); l1.setAttribute('y2', 400);
+              linesG.appendChild(l1);
+              var l2 = document.createElementNS('http://www.w3.org/2000/svg','line');
+              l2.setAttribute('x1', 0); l2.setAttribute('y1', i*step);
+              l2.setAttribute('x2', 400); l2.setAttribute('y2', i*step);
+              linesG.appendChild(l2);
+            }
+            var dotsG = document.getElementById('dotsGroup');
+            for(var x=0;x<=12;x++){
+              for(var y=0;y<=12;y++){
+                var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+                c.setAttribute('cx', x*step); c.setAttribute('cy', y*step);
+                c.setAttribute('r', 2.2);
+                c.setAttribute('fill', Math.random() > 0.86 ? '#F0A63A' : '#3A4457');
+                dotsG.appendChild(c);
+              }
+            }
+          })();
+        ]]></script>
+      </svg>
+      <div class="lattice-caption">Lattice scan — live node exposure map</div>
+    </div>
+  </div>
+</section>
+
+<section id="problem">
+  <div class="section-head">
+    <div class="section-tag">The Problem</div>
+    <h2>Harvest now, decrypt later isn't theoretical.</h2>
+    <p>Adversaries can record encrypted traffic today and hold it until a cryptographically relevant quantum computer can break it. For data that needs to stay confidential for years, that machine doesn't need to exist yet — it just needs to exist before your secrets expire.</p>
+  </div>
+  <div class="problem-grid">
+    <div class="problem-copy">
+      <p><strong>Shor's algorithm</strong> breaks the math behind RSA, Diffie-Hellman, and elliptic-curve cryptography once a large enough fault-tolerant quantum computer exists. Most estimates put that milestone somewhere in the next decade — nobody can say the exact date, which is exactly the problem.</p>
+      <p>Sentinel doesn't try to predict Q-Day. It tracks <strong>your exposure</strong>: which systems still rely on algorithms with an expiration date, and how far along your migration to post-quantum cryptography actually is.</p>
+    </div>
+    <div class="algo-table">
+      <div class="algo-row head"><span>Algorithm</span><span>Used for</span><span>Quantum-safe</span></div>
+      <div class="algo-row"><span>RSA-2048</span><span>TLS, signing</span><span class="status broken">Broken by Shor's</span></div>
+      <div class="algo-row"><span>ECDSA / ECDH</span><span>TLS, VPN</span><span class="status broken">Broken by Shor's</span></div>
+      <div class="algo-row"><span>AES-256</span><span>Data at rest</span><span class="status safe">Safe (Grover-resistant)</span></div>
+      <div class="algo-row"><span>CRYSTALS-Kyber</span><span>Key exchange</span><span class="status safe">Lattice-based, PQC</span></div>
+      <div class="algo-row"><span>CRYSTALS-Dilithium</span><span>Signing</span><span class="status safe">Lattice-based, PQC</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="monitoring">
+  <div class="section-head">
+    <div class="section-tag">What Sentinel Watches</div>
+    <h2>One inventory of every algorithm still running.</h2>
+    <p>Sentinel builds a live cryptographic bill of materials across your infrastructure, then scores and tracks it until nothing on the list is a liability.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+      <h3>Cryptographic inventory</h3>
+      <p>Continuously discovers every certificate, key exchange, and signature scheme in use across services, dependencies, and network traffic.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <h3>Exposure scoring</h3>
+      <p>Ranks each finding by how long the data must stay secret versus how soon it could realistically be broken — not just whether it's on a deprecation list.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></div>
+      <h3>Migration tracking</h3>
+      <p>Maps each vulnerable system to its post-quantum replacement and tracks rollout progress like any other engineering milestone.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M4.9 4.9l2.9 2.9M16.2 16.2l2.9 2.9M2 12h4M18 12h4M4.9 19.1l2.9-2.9M16.2 7.8l2.9-2.9"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h3>Drift alerts</h3>
+      <p>Flags the moment a "migrated" system quietly falls back to a legacy handshake, so fixed problems stay fixed.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg></div>
+      <h3>Audit-ready reporting</h3>
+      <p>Generates the readiness documentation regulators and boards are starting to ask for, without a manual spreadsheet exercise.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+      <h3>Priority sequencing</h3>
+      <p>Tells you what to migrate first based on data sensitivity and shelf life — the fixes that matter before Q-Day, not just the easy ones.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="section-head">
+    <div class="section-tag">How It Works</div>
+    <h2>Four stages, running continuously.</h2>
+    <p>Sentinel isn't a one-time audit. Each stage re-runs on a schedule, so readiness is a number you can watch move, not a report that goes stale.</p>
+  </div>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num"><span class="n">01</span><span>Discover</span></div>
+      <h3>Scan the estate</h3>
+      <p>Crawl certificates, TLS configs, code dependencies, and key stores across cloud and on-prem systems.</p>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num"><span class="n">02</span><span>Assess</span></div>
+      <h3>Score exposure</h3>
+      <p>Weigh each finding by data sensitivity, retention window, and how exploitable it is once quantum-capable hardware exists.</p>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num"><span class="n">03</span><span>Migrate</span></div>
+      <h3>Track remediation</h3>
+      <p>Assign owners, link tickets, and follow each system through its move to a post-quantum algorithm.</p>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num"><span class="n">04</span><span>Verify</span></div>
+      <h3>Confirm and re-scan</h3>
+      <p>Re-check migrated systems on a cadence to catch regressions before they become incidents.</p>
+    </div>
+  </div>
+</section>
+
+<section id="status">
+  <div class="status-panel">
+    <div class="status-copy">
+      <div class="section-tag">Fleet Status</div>
+      <h2>Readiness, not a countdown.</h2>
+      <p>Nobody knows the exact date a quantum computer breaks RSA — so Sentinel reports the number that actually matters: how much of your cryptographic footprint is already safe if that day comes early.</p>
+      <div class="status-metrics">
+        <div class="metric"><div class="num">62%</div><div class="label">Migrated to PQC</div></div>
+        <div class="metric"><div class="num">184</div><div class="label">Systems tracked</div></div>
+        <div class="metric"><div class="num">9</div><div class="label">Critical exposures</div></div>
+      </div>
+    </div>
+    <div class="status-visual">
+      <svg viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="86" fill="none" stroke="#1C2536" stroke-width="14"/>
+        <circle cx="100" cy="100" r="86" fill="none" stroke="#5EEAD4" stroke-width="14"
+          stroke-dasharray="540" stroke-dashoffset="205" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+        <text x="100" y="94" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="34" font-weight="700" fill="#E7ECF3">62%</text>
+        <text x="100" y="116" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.5" fill="#8592A6">QUANTUM-SAFE</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="cta">
+  <h2>Find out what's actually still breakable.</h2>
+  <p>Most organizations don't know how much of their traffic still depends on math with an expiration date. Sentinel finds out in one scan.</p>
+  <div class="cta-actions">
+    <a class="btn-primary" href="#">Request access</a>
+    <a class="btn-ghost" href="#problem">Read the briefing</a>
+  </div>
+</section>
+
+<footer>
+  <div>Q-DAY SENTINEL — Cryptographic exposure monitoring</div>
+  <div><a href="#problem">The Problem</a> &nbsp;·&nbsp; <a href="#monitoring">Monitoring</a> &nbsp;·&nbsp; <a href="#pipeline">Pipeline</a></div>
+</footer>
+
+</body>
+</html>
